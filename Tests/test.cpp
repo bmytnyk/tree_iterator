@@ -6,7 +6,35 @@
 #include "dfs_adaptor.h"
 #include "bfs_adaptor.h"
 
+#include <chrono>
 #include <iostream>
+
+// Generate using DFT  - easier
+tree_item<int>* GenerateTreeItem(int levelsCount, int childsCount)
+{
+    tree_item<int>* ret_tree_item(new tree_item<int>(levelsCount * childsCount));
+    
+    if (levelsCount > 0)
+    {
+        for (size_t i = 0; i < childsCount; ++i)
+        {
+            auto* child_tree_item = GenerateTreeItem(levelsCount - 1, childsCount);
+            ret_tree_item->add_child(child_tree_item);
+        };
+    }
+    
+    return ret_tree_item;
+};
+
+void DFSTraversing(tree_item<int>* item, const std::function<void(int&)>& func)
+{
+    func(item->value());
+    
+    for (size_t i = 0; i < item->count(); ++i)
+    {
+        DFSTraversing(item->get_child(i), func);
+    };
+}
 
 int main(int argc, const char * argv[])
 {
@@ -47,6 +75,24 @@ int main(int argc, const char * argv[])
     
     it = std::find(test_tree.bfs_begin(), test_tree.bfs_end(), 533);
     has = (it != test_tree.bfs_end());
+    
+    tree_type test_tree_2(GenerateTreeItem(18, 4));
+    
+    auto start = std::chrono::system_clock::now();
+    
+    DFSTraversing(test_tree_2.top(), [](int& value){ ++value;});
+    
+    auto diff = (std::chrono::system_clock::now() - start);
+    
+    std::cout << "Travers time (usual) - " << diff.count() << std::endl;
+    
+    start = std::chrono::system_clock::now();
 
+    std::for_each(test_tree_2.dfs_begin(), test_tree_2.dfs_end(), [](int& value){ ++value;});
+    
+    diff = (std::chrono::system_clock::now() - start);
+
+    std::cout << "Travers time (iterator) - " << diff.count()  << std::endl;
+    
 	return 0;
 }

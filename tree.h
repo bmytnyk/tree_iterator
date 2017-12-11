@@ -85,7 +85,7 @@ struct top_helper
 template <typename T>
 struct top_helper<T, std::queue<T>>
 {
-    static const T& get(std::queue<T>& c)
+    inline static const T& get(std::queue<T>& c)
     {
         return c.front();
     }
@@ -94,7 +94,7 @@ struct top_helper<T, std::queue<T>>
 template <typename T>
 struct top_helper<T, std::stack<T>>
 {
-    static const T& get(std::stack<T>& c)
+    inline static const T& get(std::stack<T>& c)
     {
         return c.top();
     }
@@ -105,14 +105,15 @@ class tree
 {
 public:
     typedef tree_item<T> item_type;
-    
-    tree():
-        m_top(nullptr)
-    {
-    }
+
     
     tree(const T& value) :
         m_top(new tree_item<T>(value))
+    {
+    }
+    
+    tree(item_type* top_item = nullptr) :
+        m_top(top_item)
     {
     }
     
@@ -156,7 +157,7 @@ public:
             return *this;
         }
         
-        const_base_iterator& operator++()
+        inline const_base_iterator& operator++()
         {
             if (m_current != nullptr)
             {
