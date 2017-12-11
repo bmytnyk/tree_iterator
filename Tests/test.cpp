@@ -12,6 +12,8 @@ int main(int argc, const char * argv[])
 {
 	typedef tree<int> tree_type;
 	typedef tree_item<int> tree_type_int;
+    
+    tree_type::bfs_iterator it1, it2;
 	
 	tree_type test_tree(2342);
 
@@ -37,6 +39,14 @@ int main(int argc, const char * argv[])
 	for (const auto& item : make_bfs_adaptor(test_tree_ref))
 		std::cout << item << " ; ";
 	std::cout << std::endl;
+    
+    //auto dfs_tree = make_dfs_adaptor(test_tree);
+    
+    auto it = std::find(test_tree.bfs_begin(), test_tree.bfs_end(), 312);
+    bool has = (it != test_tree.bfs_end());
+    
+    it = std::find(test_tree.bfs_begin(), test_tree.bfs_end(), 533);
+    has = (it != test_tree.bfs_end());
 
 	return 0;
 }

@@ -134,7 +134,7 @@ public:
     class const_base_iterator
     {
     public:
-        const_base_iterator(item_type* cur) :
+        const_base_iterator(item_type* cur = nullptr) :
             m_current(cur)
         {
         }
@@ -226,7 +226,7 @@ public:
         using base_type::m_current;
         using base_type::m_nextItems;
         
-        base_iterator(item_type* cur):
+        base_iterator(item_type* cur = nullptr):
             base_type(cur)
         {
         }
