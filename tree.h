@@ -9,6 +9,7 @@
 #include <vector>
 #include <queue>
 #include <stack>
+#include <iterator>
 
 template <typename T>
 class tree_item
@@ -132,7 +133,7 @@ public:
     size_t count() const { return m_top->count(); }
     
     template <typename ContainerType>
-    class const_base_iterator
+    struct const_base_iterator : public std::iterator<std::forward_iterator_tag, T>
     {
     public:
         const_base_iterator(item_type* cur = nullptr) :
@@ -174,6 +175,10 @@ public:
                     m_current = nullptr;
                 }
             }
+			else
+			{
+				throw std::runtime_error("Increment on invalid iterator");
+			}
             
             return *this;
         };
@@ -201,12 +206,12 @@ public:
             return &m_current->value();
         }
         
-        bool operator == (const const_base_iterator& iter) const
+        inline bool operator == (const const_base_iterator& iter) const
         {
             return (m_current == iter.m_current);
         }
         
-        bool operator != (const const_base_iterator& iter) const
+		inline bool operator != (const const_base_iterator& iter) const
         {
             return !(*this == iter);
         }
@@ -220,7 +225,7 @@ public:
     typedef const_base_iterator<std::queue<item_type*>> const_bfs_iterator;
     
     template <typename ContainerType>
-    class base_iterator : const_base_iterator<ContainerType>
+	struct base_iterator : const_base_iterator<ContainerType>
     {
     public:
         using base_type = const_base_iterator<ContainerType>;

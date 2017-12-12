@@ -3,11 +3,12 @@
 //  Copyright � 2017 bogdan.mytnyk. All rights reserved.
 //
 
-#include "dfs_adaptor.h"
-#include "bfs_adaptor.h"
+#include "../dfs_adaptor.h"
+#include "../bfs_adaptor.h"
 
 #include <chrono>
 #include <iostream>
+#include <functional>
 
 // Generate using DFT  - easier
 tree_item<int>* GenerateTreeItem(int levelsCount, int childsCount)
@@ -16,7 +17,7 @@ tree_item<int>* GenerateTreeItem(int levelsCount, int childsCount)
     
     if (levelsCount > 0)
     {
-        for (size_t i = 0; i < childsCount; ++i)
+        for (int i = 0; i < childsCount; ++i)
         {
             auto* child_tree_item = GenerateTreeItem(levelsCount - 1, childsCount);
             ret_tree_item->add_child(child_tree_item);
@@ -76,7 +77,7 @@ int main(int argc, const char * argv[])
     it = std::find(test_tree.bfs_begin(), test_tree.bfs_end(), 533);
     has = (it != test_tree.bfs_end());
     
-    tree_type test_tree_2(GenerateTreeItem(18, 4));
+    tree_type test_tree_2(GenerateTreeItem(4, 20));
     
     auto start = std::chrono::system_clock::now();
     
@@ -88,11 +89,37 @@ int main(int argc, const char * argv[])
     
     start = std::chrono::system_clock::now();
 
-    std::for_each(test_tree_2.dfs_begin(), test_tree_2.dfs_end(), [](int& value){ ++value;});
+    //std::for_each(test_tree_2.dfs_begin(), test_tree_2.dfs_end(), [](int& value){ ++value;});
+	
+	for (auto it = test_tree_2.bfs_begin(), itEnd = test_tree_2.bfs_end(); it != itEnd; ++it)
+	{
+		++(*it);
+	}
     
     diff = (std::chrono::system_clock::now() - start);
 
     std::cout << "Travers time (iterator) - " << diff.count()  << std::endl;
+
+	start = std::chrono::system_clock::now();
+
+	std::stack<tree_type_int*> items;
+	items.push(test_tree_2.top());
+	while (!items.empty())
+	{
+		tree_type_int* currentItem = items.top();
+		items.pop();
+		++currentItem->value();
+
+		for (size_t i = 0, count = currentItem->count(); i < count; ++i)
+		{
+			items.push(currentItem->get_child(i));
+		}
+	}
+
+
+	diff = (std::chrono::system_clock::now() - start);
+
+	std::cout << "Travers time (function) - " << diff.count() << std::endl;
     
 	return 0;
 }
