@@ -10,6 +10,8 @@
 #include <queue>
 #include <stack>
 #include <iterator>
+#include <list>
+#include <cassert>
 
 template <typename T>
 class tree_item
@@ -192,8 +194,7 @@ public:
         
         const T& operator*() const
         {
-            if (!m_current)
-                throw std::runtime_error("Dereferencing invalid iterator");
+            assert(m_current && "Dereferencing invalid iterator");
             
             return m_current->value();
         }
@@ -213,7 +214,7 @@ public:
         
 		inline bool operator != (const const_base_iterator& iter) const
         {
-            return !(*this == iter);
+            return (m_current != iter.m_current);
         }
         
     protected:
@@ -221,7 +222,7 @@ public:
         item_type* m_current;
     };
     
-    typedef const_base_iterator<std::stack<item_type*>> const_dfs_iterator;
+    typedef const_base_iterator<std::stack<item_type*, std::deque<item_type*>>> const_dfs_iterator;
     typedef const_base_iterator<std::queue<item_type*>> const_bfs_iterator;
     
     template <typename ContainerType>
@@ -248,18 +249,16 @@ public:
             return *this;
         }
         
-        T& operator*()
+        inline T& operator*()
         {
-            if (!m_current)
-                throw std::runtime_error("Dereferencing invalid iterator");
+            assert(m_current && "Dereferencing invalid iterator");
             
             return m_current->value();
         }
         
         T* operator->()
         {
-            if (!m_current)
-                throw std::runtime_error("Dereferencing invalid iterator");
+            assert(m_current && "Dereferencing invalid iterator");
             
             return &m_current->value();
         }
@@ -286,14 +285,14 @@ public:
             return *this;
         };
         
-        bool operator == (const base_iterator& iter) const
+        inline bool operator == (const base_iterator& iter) const
         {
             return (m_current == iter.m_current);
         }
         
-        bool operator != (const base_iterator& iter) const
+        inline bool operator != (const base_iterator& iter) const
         {
-            return !(*this == iter);
+            return (m_current != iter.m_current);
         }
     };
     

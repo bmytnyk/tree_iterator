@@ -10,6 +10,9 @@
 #include <iostream>
 #include <functional>
 
+typedef tree<int> tree_type;
+typedef tree_item<int> tree_type_int;
+
 // Generate using DFT  - easier
 tree_item<int>* GenerateTreeItem(int levelsCount, int childsCount)
 {
@@ -37,10 +40,55 @@ void DFSTraversing(tree_item<int>* item, const std::function<void(int&)>& func)
     };
 }
 
+void TestPerformance(uint32_t minLevel, uint32_t maxLevel, uint32_t minChildCount, uint32_t maxChildCount)
+{
+    auto averageOfAverage = 0.f;
+    
+    for (int i = 0; i < 10; ++i)
+    {
+        auto sumRatio = 0.f;
+        
+        for (uint32_t curLevel = minLevel; curLevel <= maxLevel; ++curLevel)
+        {
+            for (uint32_t curChildCount = minChildCount; curChildCount <= maxChildCount; ++curChildCount)
+            {
+                tree_type test_tree(GenerateTreeItem(curLevel, curChildCount));
+                
+                auto start = std::chrono::system_clock::now();
+                
+                DFSTraversing(test_tree.top(), [](int& value){ ++value;});
+                
+                auto traverseTimeRecursive = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - start).count();
+                
+                start = std::chrono::system_clock::now();
+                
+                std::for_each(test_tree.dfs_begin(), test_tree.dfs_end(), [](int& value){ ++value;});
+
+                auto traverseTimeIterative = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - start).count();
+                
+                auto curRatio = static_cast<float>(traverseTimeRecursive) / traverseTimeIterative;
+                sumRatio += curRatio;
+            
+                std::cout << "Cur configuration - (" << curLevel << "," << curChildCount << ")\n"
+                          << "\tRecursive - " << traverseTimeRecursive << "\n"
+                          << "\tIterative - " << traverseTimeIterative << "\n"
+                          << "\tRatio - " << static_cast<float>(traverseTimeRecursive) / traverseTimeIterative << std::endl;
+                
+            }
+        }
+    
+        auto average = sumRatio / ((maxLevel - minLevel + 1) * (maxChildCount - minChildCount + 1) * 10);
+        averageOfAverage += average;
+        
+        std::cout << "Average ratio - " << average <<  std::endl;
+    }
+    
+    std::cout << "Average of average - " << averageOfAverage;
+}
+
 int main(int argc, const char * argv[])
 {
-	typedef tree<int> tree_type;
-	typedef tree_item<int> tree_type_int;
+    TestPerformance(8, 12, 2, 4);
     
     tree_type::bfs_iterator it1, it2;
 	
@@ -76,50 +124,6 @@ int main(int argc, const char * argv[])
     
     it = std::find(test_tree.bfs_begin(), test_tree.bfs_end(), 533);
     has = (it != test_tree.bfs_end());
-    
-    tree_type test_tree_2(GenerateTreeItem(4, 20));
-    
-    auto start = std::chrono::system_clock::now();
-    
-    DFSTraversing(test_tree_2.top(), [](int& value){ ++value;});
-    
-    auto diff = (std::chrono::system_clock::now() - start);
-    
-    std::cout << "Travers time (usual) - " << diff.count() << std::endl;
-    
-    start = std::chrono::system_clock::now();
-
-    //std::for_each(test_tree_2.dfs_begin(), test_tree_2.dfs_end(), [](int& value){ ++value;});
-	
-	for (auto it = test_tree_2.bfs_begin(), itEnd = test_tree_2.bfs_end(); it != itEnd; ++it)
-	{
-		++(*it);
-	}
-    
-    diff = (std::chrono::system_clock::now() - start);
-
-    std::cout << "Travers time (iterator) - " << diff.count()  << std::endl;
-
-	start = std::chrono::system_clock::now();
-
-	std::stack<tree_type_int*> items;
-	items.push(test_tree_2.top());
-	while (!items.empty())
-	{
-		tree_type_int* currentItem = items.top();
-		items.pop();
-		++currentItem->value();
-
-		for (size_t i = 0, count = currentItem->count(); i < count; ++i)
-		{
-			items.push(currentItem->get_child(i));
-		}
-	}
-
-
-	diff = (std::chrono::system_clock::now() - start);
-
-	std::cout << "Travers time (function) - " << diff.count() << std::endl;
     
 	return 0;
 }
