@@ -30,11 +30,11 @@ tree_item<int>* GenerateTreeItem(int levelsCount, int childsCount)
     return ret_tree_item;
 };
 
-void DFSTraversing(tree_item<int>* item, const std::function<void(int&)>& func)
+void DFSTraversing(tree_item<int>* item, const std::function<void()>& func)
 {
-    func(item->value());
+    func();
     
-    for (size_t i = 0; i < item->count(); ++i)
+    for (size_t i = 0, count = item->count(); i < count; ++i)
     {
         DFSTraversing(item->get_child(i), func);
     };
@@ -42,88 +42,164 @@ void DFSTraversing(tree_item<int>* item, const std::function<void(int&)>& func)
 
 void TestPerformance(uint32_t minLevel, uint32_t maxLevel, uint32_t minChildCount, uint32_t maxChildCount)
 {
-    auto averageOfAverage = 0.f;
+    auto sumRatio = 0.f;
     
-    for (int i = 0; i < 10; ++i)
+    for (uint32_t curLevel = minLevel; curLevel <= maxLevel; ++curLevel)
     {
-        auto sumRatio = 0.f;
-        
-        for (uint32_t curLevel = minLevel; curLevel <= maxLevel; ++curLevel)
+        for (uint32_t curChildCount = minChildCount; curChildCount <= maxChildCount; ++curChildCount)
         {
-            for (uint32_t curChildCount = minChildCount; curChildCount <= maxChildCount; ++curChildCount)
-            {
-                tree_type test_tree(GenerateTreeItem(curLevel, curChildCount));
-                
-                auto start = std::chrono::system_clock::now();
-                
-                DFSTraversing(test_tree.top(), [](int& value){ ++value;});
-                
-                auto traverseTimeRecursive = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - start).count();
-                
-                start = std::chrono::system_clock::now();
-                
-                std::for_each(test_tree.dfs_begin(), test_tree.dfs_end(), [](int& value){ ++value;});
-
-                auto traverseTimeIterative = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - start).count();
-                
-                auto curRatio = static_cast<float>(traverseTimeRecursive) / traverseTimeIterative;
-                sumRatio += curRatio;
+            auto countTraversing = 0;
             
-                std::cout << "Cur configuration - (" << curLevel << "," << curChildCount << ")\n"
-                          << "\tRecursive - " << traverseTimeRecursive << "\n"
-                          << "\tIterative - " << traverseTimeIterative << "\n"
-                          << "\tRatio - " << static_cast<float>(traverseTimeRecursive) / traverseTimeIterative << std::endl;
-                
-            }
-        }
-    
-        auto average = sumRatio / ((maxLevel - minLevel + 1) * (maxChildCount - minChildCount + 1) * 10);
-        averageOfAverage += average;
+            tree_type test_tree(GenerateTreeItem(curLevel, curChildCount));
+            
+            auto start = std::chrono::system_clock::now();
+            
+            DFSTraversing(test_tree.top(), [&countTraversing](){ ++countTraversing;});
+            
+            auto traverseTimeRecursive = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - start).count();
+            
+            start = std::chrono::system_clock::now();
+            
+            auto countTraverseIter = std::distance(test_tree.dfs_begin(), test_tree.dfs_end());
+            //std::for_each(test_tree.dfs_begin(), test_tree.dfs_end(), [&countTraverseIter](){ ++countTraverseIter;});
+
+            auto traverseTimeIterative = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - start).count();
+            
+            auto curRatio = static_cast<float>(traverseTimeRecursive) / traverseTimeIterative;
+            sumRatio += curRatio;
         
-        std::cout << "Average ratio - " << average <<  std::endl;
+            std::cout << "Cur configuration - (" << curLevel << "," << curChildCount << ")\n"
+                      << "\tRecursive - " << traverseTimeRecursive << "\n"
+                      << "\tIterative - " << traverseTimeIterative << "\n"
+                      << "\tRatio - " << static_cast<float>(traverseTimeRecursive) / traverseTimeIterative << std::endl;
+            
+        }
+    }
+
+    auto average = sumRatio / ((maxLevel - minLevel + 1) * (maxChildCount - minChildCount + 1));
+    
+    std::cout << "Average ratio - " << average <<  std::endl;
+}
+
+void TestBeginEndCorrectness()
+{
+    tree_type empty_tree;
+    auto beginIter = empty_tree.dfs_begin();
+    auto endIter = empty_tree.dfs_end();
+    
+    if (beginIter != endIter)
+        throw std::runtime_error("Test iterator correctness failed");
+    
+    tree_type one_item_tree(2342);
+}
+
+void TestBFSTraversal()
+{
+    tree_type test_tree(2342);
+    
+    tree_item<int>* child1 = new tree_item<int>(2834);
+    child1->add_child(new tree_item<int>(989));
+    child1->add_child(new tree_item<int>(9439));
+    
+    test_tree.add_child(new tree_item<int>(334));
+    test_tree.add_child(child1);
+    test_tree.add_child(new tree_item<int>(533));
+    
+    // Expected items
+    int expectedItems[] = {2342,  334, 2834, 533, 989, 9439};
+    
+    size_t i = 0;
+    for (int value : make_bfs_adaptor(test_tree))
+    {
+        if (value != expectedItems[i++])
+        {
+            throw std::runtime_error("BFS Traversal failed");
+        }
+    }
+}
+
+void TestDFSTraversal()
+{
+    tree_type test_tree(1);
+    
+    tree_item<int>* child1 = new tree_item<int>(2);
+    child1->add_child(new tree_item<int>(3));
+    child1->add_child(new tree_item<int>(4));
+    
+    tree_item<int>* child2 = new tree_item<int>(5);
+    child2->add_child(new tree_item<int>(6));
+    child2->add_child(new tree_item<int>(7));
+    child2->add_child(new tree_item<int>(8));
+    
+    tree_item<int>* child3 = new tree_item<int>(9);
+    child3->add_child(new tree_item<int>(10));
+    child3->add_child(new tree_item<int>(11));
+    
+    test_tree.add_child(child1);
+    test_tree.add_child(child2);
+    test_tree.add_child(child3);
+    
+    // Expected items
+    int expectedItems[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    
+    size_t expectedCount = sizeof(expectedItems)/sizeof(expectedItems[0]);
+    if (expectedCount != std::distance(test_tree.dfs_begin(), test_tree.dfs_end()))
+    {
+        throw std::runtime_error("BFS Traversal failed - invalid number of nodes");
     }
     
-    std::cout << "Average of average - " << averageOfAverage;
+    size_t i = 0;
+    for (int value : make_dfs_adaptor(test_tree))
+    {
+        if (value != expectedItems[i++])
+        {
+            throw std::runtime_error("BFS Traversal failed");
+        }
+    }
+}
+
+         
+void TestFindSTLAlgo()
+{
+    tree_type test_tree(2342);
+    
+    tree_item<int>* child1 = new tree_item<int>(2834);
+    child1->add_child(new tree_item<int>(989));
+    child1->add_child(new tree_item<int>(9439));
+    
+    test_tree.add_child(child1);
+    test_tree.add_child(new tree_item<int>(533));
+    
+    auto it = std::find(test_tree.dfs_begin(), test_tree.dfs_end(), 312);
+    bool has = (it != test_tree.dfs_end());
+    if (has)
+        throw std::runtime_error("TestFindSTLAlgo failed");
+    
+    auto it3 = std::find(test_tree.dfs_begin(), test_tree.dfs_begin(), 533);
+    has = (it3 != test_tree.dfs_end());
+    if (!has)
+        throw std::runtime_error("TestFindSTLAlgo failed");
 }
 
 int main(int argc, const char * argv[])
 {
-    TestPerformance(8, 12, 2, 4);
-    
-    tree_type::bfs_iterator it1, it2;
-	
-	tree_type test_tree(2342);
-
-	tree_item<int>* child1 = new tree_item<int>(2834);
-	child1->add_child(new tree_item<int>(989));
-	child1->add_child(new tree_item<int>(9439));
-
-	test_tree.add_child(new tree_item<int>(334));
-	test_tree.add_child(child1);
-	test_tree.add_child(new tree_item<int>(533));
-
-	auto beginIter = test_tree.bfs_begin();
-	auto endIter = test_tree.bfs_end();
-	bool equal = (beginIter == endIter);
-
-	std::cout << "DFS traversing : \n";
-	for (const auto& item : make_dfs_adaptor(test_tree))
-		std::cout << item << " ; ";
-	std::cout << "\n";
-    
-    const auto& test_tree_ref = test_tree;
-	std::cout << "BFS traversing : \n";
-	for (const auto& item : make_bfs_adaptor(test_tree_ref))
-		std::cout << item << " ; ";
-	std::cout << std::endl;
-    
-    //auto dfs_tree = make_dfs_adaptor(test_tree);
-    
-    auto it = std::find(test_tree.bfs_begin(), test_tree.bfs_end(), 312);
-    bool has = (it != test_tree.bfs_end());
-    
-    it = std::find(test_tree.bfs_begin(), test_tree.bfs_end(), 533);
-    has = (it != test_tree.bfs_end());
+    try
+    {
+        TestBeginEndCorrectness();
+        
+        TestBFSTraversal();
+        
+        TestDFSTraversal();
+        
+        TestFindSTLAlgo();
+        
+        TestPerformance(8, 12, 2, 4);
+    }
+    catch (const std::exception& exc)
+    {
+        std::cout << exc.what() << std::endl;
+        return -1;
+    }
     
 	return 0;
 }

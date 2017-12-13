@@ -27,7 +27,7 @@ public:
     }
     
     tree_item(const self_type& item):
-    m_value(item.value)
+        m_value(item.value)
     {
         copy_children(item);
     }
@@ -86,8 +86,104 @@ struct top_helper
 };
 
 template <typename T>
+class list_stack
+{
+private:
+    size_t m_allocated;
+    T* m_storage;
+    T* m_head;
+    
+public:
+    
+    list_stack():
+        m_allocated(0),
+        m_storage(nullptr),
+        m_head(nullptr)
+    {
+    }
+    
+    list_stack(const list_stack& rht):
+        m_allocated(rht.m_allocated),
+        m_storage(nullptr),
+        m_head(nullptr)
+    {
+        if (rht.m_storage != nullptr)
+        {
+            m_storage = new T[rht.m_allocated];
+            m_head = m_storage + (rht.m_head - rht.m_storage);
+        }
+    }
+    
+    inline void push(T value)
+    {
+        if (m_head == nullptr)
+        {
+            m_allocated = 64;
+            m_storage = new T[m_allocated];
+            m_head = m_storage;
+            *m_head = value;
+        }
+        else if (m_head - m_storage < m_allocated)
+        {
+            *++m_head = value;
+        }
+        else
+        {
+            T* new_storage = new T[2 * m_allocated];
+            memcpy(new_storage, m_storage, m_allocated);
+            m_head = new_storage + m_allocated + 1;
+            m_allocated = 2 * m_allocated;
+            delete [] m_storage;
+            m_storage = new_storage;
+            *m_head = value;
+        }
+    }
+    
+    inline void pop()
+    {
+        if (m_head != m_storage)
+        {
+            --m_head;
+        }
+        else
+        {
+            m_head = nullptr;
+        }
+        
+    }
+    
+    inline T& top()
+    {
+        return *m_head;
+    }
+    
+    bool empty() const
+    {
+        return m_head == nullptr;
+    }
+    
+    ~list_stack()
+    {
+        if (m_storage != nullptr)
+        {
+            delete [] m_storage;
+            m_storage = nullptr;
+        }
+    }
+
+private:
+    list_stack<T>& operator=(const list_stack&);
+};
+
+template <typename T>
 struct top_helper<T, std::queue<T>>
 {
+    inline static void push_next_items(T current, std::queue<T>& next_items)
+    {
+        for (size_t i = 0, count = current->count(); i < count; ++i)
+            next_items.push(current->get_child(i));
+    }
+    
     inline static const T& get(std::queue<T>& c)
     {
         return c.front();
@@ -97,7 +193,28 @@ struct top_helper<T, std::queue<T>>
 template <typename T>
 struct top_helper<T, std::stack<T>>
 {
+    inline static void push_next_items(T current, std::stack<T>& next_items)
+    {
+        for (size_t i = 0, count = current->count(); i < count; ++i)
+            next_items.push(current->get_child(count - i - 1));
+    }
+    
     inline static const T& get(std::stack<T>& c)
+    {
+        return c.top();
+    }
+};
+
+template <typename T>
+struct top_helper<T, list_stack<T>>
+{
+    inline static void push_next_items(T current, list_stack<T>& next_items)
+    {
+        for (size_t i = 0, count = current->count(); i < count; ++i)
+            next_items.push(current->get_child(count - i - 1));
+    }
+    
+    inline static const T& get(list_stack<T>& c)
     {
         return c.top();
     }
@@ -109,7 +226,6 @@ class tree
 public:
     typedef tree_item<T> item_type;
 
-    
     tree(const T& value) :
         m_top(new tree_item<T>(value))
     {
@@ -164,8 +280,7 @@ public:
         {
             if (m_current != nullptr)
             {
-                for (size_t i = 0, count = m_current->count(); i < count; ++i)
-                    m_nextItems.push(m_current->get_child(i));
+                top_helper<item_type*, ContainerType>::push_next_items(m_current, m_nextItems);
                 
                 if (!m_nextItems.empty())
                 {
@@ -222,7 +337,7 @@ public:
         item_type* m_current;
     };
     
-    typedef const_base_iterator<std::stack<item_type*, std::deque<item_type*>>> const_dfs_iterator;
+    typedef const_base_iterator<std::stack<item_type*>> const_dfs_iterator;
     typedef const_base_iterator<std::queue<item_type*>> const_bfs_iterator;
     
     template <typename ContainerType>
@@ -264,12 +379,11 @@ public:
         }
         
         // Add increments
-        base_iterator& operator++()
+        inline base_iterator& operator++()
         {
             if (m_current != nullptr)
             {
-                for (size_t i = 0, count = m_current->count(); i < count; ++i)
-                    m_nextItems.push(m_current->get_child(i));
+                top_helper<item_type*, ContainerType>::push_next_items(m_current, m_nextItems);
                 
                 if (!m_nextItems.empty())
                 {
@@ -296,7 +410,7 @@ public:
         }
     };
     
-    typedef base_iterator<std::stack<item_type*>> dfs_iterator;
+    typedef base_iterator<list_stack<item_type*>> dfs_iterator;
     typedef base_iterator<std::queue<item_type*>> bfs_iterator;
     
     const_bfs_iterator bfs_cbegin() const

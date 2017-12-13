@@ -59,7 +59,7 @@ struct bfs_adaptor : public const_bfs_adaptor<T>
     
     inline typename tree<T>::bfs_iterator end()
     {
-        return m_tree.end();
+        return m_tree.bfs_end();
     };
     
     inline typename tree<T>::bfs_iterator begin() const
