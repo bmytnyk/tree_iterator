@@ -10,8 +10,9 @@
 #include <queue>
 #include <stack>
 #include <iterator>
-#include <list>
 #include <cassert>
+
+#include "optimized_ptr_stack.h"
 
 template <typename T>
 class tree_item
@@ -21,8 +22,8 @@ public:
     using children_container = std::vector<self_type*>;
     
     explicit tree_item(const T& value) :
-    m_value(value),
-    m_children()
+        m_value(value),
+        m_children()
     {
     }
     
@@ -86,96 +87,6 @@ struct top_helper
 };
 
 template <typename T>
-class list_stack
-{
-private:
-    size_t m_allocated;
-    T* m_storage;
-    T* m_head;
-    
-public:
-    
-    list_stack():
-        m_allocated(0),
-        m_storage(nullptr),
-        m_head(nullptr)
-    {
-    }
-    
-    list_stack(const list_stack& rht):
-        m_allocated(rht.m_allocated),
-        m_storage(nullptr),
-        m_head(nullptr)
-    {
-        if (rht.m_storage != nullptr)
-        {
-            m_storage = new T[rht.m_allocated];
-            m_head = m_storage + (rht.m_head - rht.m_storage);
-        }
-    }
-    
-    inline void push(T value)
-    {
-        if (m_head == nullptr)
-        {
-            m_allocated = 64;
-            m_storage = new T[m_allocated];
-            m_head = m_storage;
-            *m_head = value;
-        }
-        else if (m_head - m_storage < m_allocated)
-        {
-            *++m_head = value;
-        }
-        else
-        {
-            T* new_storage = new T[2 * m_allocated];
-            memcpy(new_storage, m_storage, m_allocated);
-            m_head = new_storage + m_allocated + 1;
-            m_allocated = 2 * m_allocated;
-            delete [] m_storage;
-            m_storage = new_storage;
-            *m_head = value;
-        }
-    }
-    
-    inline void pop()
-    {
-        if (m_head != m_storage)
-        {
-            --m_head;
-        }
-        else
-        {
-            m_head = nullptr;
-        }
-        
-    }
-    
-    inline T& top()
-    {
-        return *m_head;
-    }
-    
-    bool empty() const
-    {
-        return m_head == nullptr;
-    }
-    
-    ~list_stack()
-    {
-        if (m_storage != nullptr)
-        {
-            delete [] m_storage;
-            m_storage = nullptr;
-        }
-    }
-
-private:
-    list_stack<T>& operator=(const list_stack&);
-};
-
-template <typename T>
 struct top_helper<T, std::queue<T>>
 {
     inline static void push_next_items(T current, std::queue<T>& next_items)
@@ -206,15 +117,15 @@ struct top_helper<T, std::stack<T>>
 };
 
 template <typename T>
-struct top_helper<T, list_stack<T>>
+struct top_helper<T, optimized_ptr_stack<T>>
 {
-    inline static void push_next_items(T current, list_stack<T>& next_items)
+    inline static void push_next_items(T current, optimized_ptr_stack<T>& next_items)
     {
         for (size_t i = 0, count = current->count(); i < count; ++i)
             next_items.push(current->get_child(count - i - 1));
     }
     
-    inline static const T& get(list_stack<T>& c)
+    inline static const T& get(optimized_ptr_stack<T>& c)
     {
         return c.top();
     }
@@ -410,7 +321,8 @@ public:
         }
     };
     
-    typedef base_iterator<list_stack<item_type*>> dfs_iterator;
+    typedef base_iterator<optimized_ptr_stack<item_type*>> dfs_iterator;
+    //typedef base_iterator<std::stack<item_type*>> dfs_iterator;
     typedef base_iterator<std::queue<item_type*>> bfs_iterator;
     
     const_bfs_iterator bfs_cbegin() const

@@ -8,6 +8,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <iomanip>
 #include <functional>
 
 typedef tree<int> tree_type;
@@ -68,12 +69,15 @@ void TestPerformance(uint32_t minLevel, uint32_t maxLevel, uint32_t minChildCoun
             auto curRatio = static_cast<float>(traverseTimeRecursive) / traverseTimeIterative;
             sumRatio += curRatio;
         
-            std::cout << "Cur configuration - (" << curLevel << "," << curChildCount << ")\n"
+            /*std::cout << "Cur configuration - (" << curLevel << "," << curChildCount << ")\n"
                       << "\tRecursive - " << traverseTimeRecursive << "\n"
                       << "\tIterative - " << traverseTimeIterative << "\n"
-                      << "\tRatio - " << static_cast<float>(traverseTimeRecursive) / traverseTimeIterative << std::endl;
+                      << "\tRatio - " << static_cast<float>(traverseTimeRecursive) / traverseTimeIterative << std::endl;*/
             
+            std::cout << std::setw(10) << static_cast<float>(traverseTimeRecursive) / traverseTimeIterative;
         }
+        
+        std::cout << std::endl;
     }
 
     auto average = sumRatio / ((maxLevel - minLevel + 1) * (maxChildCount - minChildCount + 1));
