@@ -6,80 +6,13 @@
 #ifndef TREE_H
 #define TREE_H
 
-#include <vector>
 #include <queue>
 #include <stack>
 #include <iterator>
 #include <cassert>
 
+#include "tree_item.h"
 #include "optimized_ptr_stack.h"
-
-template <typename T>
-class tree_item
-{
-public:
-    using self_type = tree_item<T>;
-    using children_container = std::vector<self_type*>;
-    
-    explicit tree_item(const T& value) :
-        m_value(value),
-        m_children()
-    {
-    }
-    
-    tree_item(const self_type& item):
-        m_value(item.value)
-    {
-        copy_children(item);
-    }
-    
-    tree_item& operator=(const self_type& item)
-    {
-        if (this != &item)
-        {
-            copy_children(item);
-        }
-        
-        return *this;
-    }
-    
-    
-    ~tree_item()
-    {
-        for (self_type* item : m_children)
-            delete item;
-    }
-    
-    inline const T& value() const { return m_value; }
-    inline T& value() { return m_value; }
-    
-    inline const children_container& children() const { return m_children; }
-    children_container& children() { return m_children; };
-    
-    void add_child(self_type* child) { m_children.push_back(child); }
-    
-    // TODO : check edge cases
-    void remove_child(size_t index) { m_children.erase(m_children.begin() + index); }
-    
-    self_type* get_child(size_t index) { return m_children[index]; }
-    const self_type* get_child(size_t index) const { return m_children[index]; }
-    
-    inline size_t count() const { return m_children.size(); };
-    
-private:
-    T m_value;
-    children_container m_children;
-    
-    void copy_children(const self_type& item)
-    {
-        const auto& children = item.children();
-        m_children.reserve(children.size());
-        std::for_each(children.begin(), children.end(), [this](self_type* item)
-                      {
-                          m_children.push_back(new tree_item(*item));
-                      });
-    }
-};
 
 template <typename T, typename Container>
 struct top_helper
@@ -227,8 +160,7 @@ public:
         
         const T* operator->() const
         {
-            if (!m_current)
-                throw std::runtime_error("Invalid iterator");
+			assert(m_current && "Dereferencing invalid iterator");
             
             return &m_current->value();
         }
@@ -290,7 +222,7 @@ public:
         }
         
         // Add increments
-        inline base_iterator& operator++()
+        base_iterator& operator++()
         {
             if (m_current != nullptr)
             {

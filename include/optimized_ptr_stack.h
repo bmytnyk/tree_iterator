@@ -77,7 +77,7 @@ public:
             m_head = m_storage;
             *m_head = value;
         }
-        else if (m_head - m_storage < m_allocated)
+        else if (static_cast<size_t>(m_head - m_storage) < m_allocated)
         {
             *++m_head = value;
         }

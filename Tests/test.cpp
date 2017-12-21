@@ -3,8 +3,8 @@
 //  Copyright � 2017 bogdan.mytnyk. All rights reserved.
 //
 
-#include "../dfs_adaptor.h"
-#include "../bfs_adaptor.h"
+#include "dfs_adaptor.h"
+#include "bfs_adaptor.h"
 
 #include <chrono>
 #include <iostream>
@@ -110,8 +110,7 @@ void TestBFSTraversal()
     test_tree.add_child(new tree_item<int>(533));
     
     // Expected items
-    int expectedItems[] = {2342,  334, 2834, 533, 989, 9439};
-    
+    int expectedItems[] = {2342, 334, 2834, 533, 989, 9439};
     size_t i = 0;
     for (int value : make_bfs_adaptor(test_tree))
     {
