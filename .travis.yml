@@ -1,7 +1,7 @@
 language : cpp
 sudo : enabled
 dist : trusty
-os : linux, osx
+os : linux
 script:
    - mkdir build
    - cd build
