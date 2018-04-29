@@ -196,7 +196,7 @@ int main(int argc, const char * argv[])
         
         TestFindSTLAlgo();
         
-        TestPerformance(8, 12, 2, 4);
+        TestPerformance(8, 12, 2, 3);
     }
     catch (const std::exception& exc)
     {
