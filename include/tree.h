@@ -79,6 +79,12 @@ public:
         m_top(top_item)
     {
     }
+
+	tree(tree&& rht) :
+		m_top(rht.m_top)
+	{
+		rht.m_top = nullptr;
+	}
     
     ~tree()
     {

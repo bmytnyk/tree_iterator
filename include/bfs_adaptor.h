@@ -11,12 +11,12 @@
 template <typename T>
 struct const_bfs_adaptor
 {
-    const_bfs_adaptor(const tree<T>& tree) :
+    const_bfs_adaptor(const tree<T>& tree):
         m_tree(tree)
     {
     }
     
-    const_bfs_adaptor(const const_bfs_adaptor<T>& adaptor) :
+    const_bfs_adaptor(const const_bfs_adaptor<T>& adaptor):
         m_tree(adaptor.m_tree)
     {
     }
