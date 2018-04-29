@@ -10,6 +10,7 @@
 #include <stack>
 #include <iterator>
 #include <cassert>
+#include <stdexcept>
 
 #include "tree_item.h"
 #include "optimized_ptr_stack.h"

@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iomanip>
 #include <functional>
+#include <algorithm>
 
 typedef tree<int> tree_type;
 typedef tree_item<int> tree_type_int;

@@ -6,6 +6,8 @@
 #ifndef OPTIMIZED_PTR_STACK_H
 #define OPTIMIZED_PTR_STACK_H
 
+#include <string.h>
+
 template <typename T>
 class optimized_ptr_stack
 {
@@ -99,7 +101,7 @@ optimized_ptr_stack<T>& optimized_ptr_stack<T>::operator=(const optimized_ptr_st
 template <typename T>
 optimized_ptr_stack<T>& optimized_ptr_stack<T>::operator=(optimized_ptr_stack<T>&& rht)
 {
-	m_allocated = rht.m_allocated
+	m_allocated = rht.m_allocated;
 	m_storage = rht.m_storage;
 	m_head = rht.m_head;
 

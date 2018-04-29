@@ -2,6 +2,7 @@
 #define TREE_ITEM_H
 
 #include <vector>
+#include <algorithm>
 
 template <typename T>
 class tree_item
