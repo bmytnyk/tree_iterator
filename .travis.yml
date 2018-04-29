@@ -5,4 +5,5 @@ os : linux
 script:
    - mkdir build
    - cd build
-   - cmake ../ --build
+   - cmake ../
+   - cmake --build .
