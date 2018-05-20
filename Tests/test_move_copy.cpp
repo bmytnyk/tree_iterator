@@ -30,7 +30,7 @@ class MoveCopyTestTreeItem : public ::testing::Test
 public:
 	virtual void SetUp()
 	{
-		m_tree_original = std::make_unique<tree_item_type>(1);
+		std::unique_ptr<tree_item_type> m_tree_original(new tree_item_type(1));
 		m_tree_original->add_child(new tree_item_type(2));
 		m_tree_original->add_child(new tree_item_type(4));
 	}

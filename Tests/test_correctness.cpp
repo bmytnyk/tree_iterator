@@ -117,7 +117,7 @@ TEST(TestAlgorithm, TestFind)
 {
     tree_type test_tree(2342);
     
-	auto child1 = std::make_unique<tree_item<int>>(2834);
+	std::unique_ptr<tree_item<int>> child1(new tree_item<int>(2834));
     child1->add_child(new tree_item<int>(989));
     child1->add_child(new tree_item<int>(9439));
     

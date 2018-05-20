@@ -1,9 +1,17 @@
 language : cpp
 sudo : enabled
 dist : trusty
-os : linux
+os : 
+  - linux
+  - osx
+compiler:
+  - clang
+  - gcc
 script:
    - mkdir build
    - cd build
    - cmake ../
    - cmake --build .
+   - cd Tests/Release
+   - ./test_correctness
+   - ./test_performance
