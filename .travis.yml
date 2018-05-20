@@ -12,6 +12,6 @@ script:
    - cd build
    - cmake ../
    - cmake --build .
-   - cd Tests/Release
+   - cd Tests
    - ./test_correctness
    - ./test_performance
