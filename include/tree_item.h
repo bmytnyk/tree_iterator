@@ -1,3 +1,8 @@
+//
+//  Created by bogdan.mytnyk on 12/11/17.
+//  Copyright © 2017 bogdan.mytnyk. All rights reserved.
+//
+
 #ifndef TREE_ITEM_H
 #define TREE_ITEM_H
 
@@ -8,13 +13,14 @@ template <typename T>
 class tree_item
 {
 public:
-	using children_container = std::vector<tree_item<T>*>;
+	using children_container = std::vector<tree_item*>;
 
-	explicit tree_item(const T& value);
+	tree_item(const T& value, std::initializer_list<tree_item*> in_list = std::initializer_list<tree_item*>());
 	tree_item(const tree_item& item);
 	tree_item& operator=(const tree_item& item);
-	tree_item(tree_item&& item);
-	~tree_item();
+	tree_item(tree_item&& item) noexcept;
+	tree_item& operator=(tree_item&& item) noexcept;
+	~tree_item() noexcept;
 
 	inline const T& value() const { return m_value; }
 	inline T& value() { return m_value; }
@@ -34,6 +40,7 @@ public:
 
 private:
 	void copy_children(const tree_item& item);
+	void clear_children() noexcept;
 
 private:
 	T m_value;
@@ -41,22 +48,22 @@ private:
 };
 
 template <typename T>
-tree_item<T>::tree_item(const T& value) :
+tree_item<T>::tree_item(const T& value, std::initializer_list<tree_item<T>*> children) :
 	m_value(value),
-	m_children()
+	m_children(children)
 {
 }
 
 template <typename T>
 tree_item<T>::tree_item(const tree_item<T>& item) :
-	m_value(item.value),
+	m_value(item.m_value),
 	m_children()
 {
 	copy_children(item);
 }
 
 template <typename T>
-tree_item<T>::tree_item(tree_item<T>&& item) :
+tree_item<T>::tree_item(tree_item<T>&& item) noexcept:
 	m_value(std::move(item.m_value)),
 	m_children(std::move(item.m_children))
 {
@@ -67,6 +74,7 @@ tree_item<T>& tree_item<T>::operator=(const tree_item<T>& item)
 {
 	if (this != &item)
 	{
+		m_value = item.m_value;
 		copy_children(item);
 	}
 
@@ -74,10 +82,18 @@ tree_item<T>& tree_item<T>::operator=(const tree_item<T>& item)
 }
 
 template <typename T>
-tree_item<T>::~tree_item()
+tree_item<T>& tree_item<T>::operator=(tree_item<T>&& item) noexcept
 {
-	for (tree_item* item : m_children)
-		delete item;
+	m_value = std::move(item.m_value);
+	m_children = std::move(item.m_children);
+
+	return *this;
+}
+
+template <typename T>
+tree_item<T>::~tree_item() noexcept
+{
+	clear_children();
 }
 
 template <typename T>
@@ -86,9 +102,17 @@ void tree_item<T>::copy_children(const tree_item<T>& item)
 	const auto& children = item.children();
 	m_children.reserve(children.size());
 	std::for_each(children.begin(), children.end(), [this](tree_item* item)
-	{
-		m_children.push_back(new tree_item(*item));
-	});
+		{
+			m_children.push_back(new tree_item(*item));
+		});
+}
+
+template <typename T>
+void tree_item<T>::clear_children() noexcept
+{
+	for (tree_item* item : m_children)
+		delete item;
+	m_children.clear();
 }
 
 template <typename T>

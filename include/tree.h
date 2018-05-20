@@ -81,9 +81,15 @@ public:
     {
     }
 
-	tree(tree&& rht) :
+	tree(tree&& rht) noexcept :
 		m_top(rht.m_top)
 	{
+		rht.m_top = nullptr;
+	}
+
+	tree& operator=(tree&& rht) noexcept
+	{
+		m_top = rht.m_top;
 		rht.m_top = nullptr;
 	}
     
