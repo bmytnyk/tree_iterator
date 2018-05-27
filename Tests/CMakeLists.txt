@@ -23,7 +23,7 @@ if (MSVC)
 	SET( CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE} /MT" CACHE STRING "MSVC MT flags " FORCE)
 endif (MSVC)
 
-add_executable(test_correctness test_correctness.cpp test_move_copy.cpp ${TREE_HEADERS})
+add_executable(test_correctness test_correctness.cpp test_algorithms.cpp test_move_copy.cpp ${TREE_HEADERS})
 
 target_link_libraries(test_correctness gtest)
 

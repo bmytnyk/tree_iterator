@@ -90,7 +90,7 @@ TEST(TestPerformance, TestMain)
 #ifndef _DEBUG
 	// In debug mode we disable all optimizations so results of performance tests are not 
 	// relevant. In this mode actual performance test make no sense
-	EXPECT_TRUE(average >= 1.f) << "Traversing using iterator is slower then recursive";
+	EXPECT_TRUE(average >= 0.5f) << "Traversing using iterator is twice slower then recursive";
 #endif
 
     std::cout << "Average ratio - " << average <<  std::endl;

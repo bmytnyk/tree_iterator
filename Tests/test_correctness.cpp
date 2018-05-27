@@ -17,34 +17,6 @@
 typedef tree<int> tree_type;
 typedef tree_item<int> tree_type_int;
 
-// Generate using DFT  - easier
-tree_type_int* GenerateTreeItem(int levelsCount, int childsCount)
-{
-	tree_type_int* ret_tree_item(new tree_type_int(levelsCount * childsCount));
-    
-    if (levelsCount > 0)
-    {
-        for (int i = 0; i < childsCount; ++i)
-        {
-            auto* child_tree_item = GenerateTreeItem(levelsCount - 1, childsCount);
-            ret_tree_item->add_child(child_tree_item);
-        };
-    }
-    
-    return ret_tree_item;
-};
-
-void DFSTraversing(tree_item<int>* item, const std::function<void()>& func)
-{
-    func();
-    
-    for (size_t i = 0, count = item->count(); i < count; ++i)
-    {
-        DFSTraversing(item->get_child(i), func);
-    };
-}
-
-
 TEST(TestIterator, TestDfsBeginEnd)
 {
     tree_type empty_tree;   
@@ -62,8 +34,8 @@ TEST(TestIterator, TestBFS)
 {
     tree_type test_tree(2342);
     
-    tree_item<int>* child1 = new tree_item<int>(2834);
-    child1->add_child(new tree_item<int>(989));
+    tree_item<int>* child1 = new tree_type_int(2834);
+    child1->add_child(new tree_type_int(989));
     child1->add_child(new tree_item<int>(9439));
     
     test_tree.add_child(new tree_item<int>(334));
@@ -111,24 +83,6 @@ TEST(TestIterator, TestDFS)
     {
 		EXPECT_EQ(value, expectedItems[i++]);
     }
-}
-
-TEST(TestAlgorithm, TestFind)
-{
-    tree_type test_tree(2342);
-    
-	std::unique_ptr<tree_item<int>> child1(new tree_item<int>(2834));
-    child1->add_child(new tree_item<int>(989));
-    child1->add_child(new tree_item<int>(9439));
-    
-    test_tree.add_child(child1.release());
-    test_tree.add_child(new tree_item<int>(533));
-    
-    auto itNotFound = std::find(test_tree.dfs_begin(), test_tree.dfs_end(), 312);
-    EXPECT_EQ(itNotFound, test_tree.dfs_end());
-    
-    auto itFound = std::find(test_tree.dfs_begin(), test_tree.dfs_begin(), 533);
-	EXPECT_NE(itFound, test_tree.dfs_end());
 }
 
 int main(int argc, char * argv[])
